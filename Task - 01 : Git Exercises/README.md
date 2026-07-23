@@ -31,4 +31,10 @@ I used git merge escaped while I was on chase-branch.Since there were
 no conflicting commits,Git performed a fast-forward merge and moved
 chase-branch to the same commit as escaped.
 
+Exercise 13: fix-old-type
+git rebase -i HEAD~2
+git commit --amend
+git rebase --continue
+i used interactive rebase to go back and edit the older commit because the typo was not in the latest commit , then i changed wordl to world in file.txt and also fixed the commit message using git commit --amend after that i continued the rebase and got a conflict so i kept the corrected line along with the newer changes removed the conflict markers and continued the rebase again , finally i checked the history and verified the exercise.
+
 
