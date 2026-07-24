@@ -53,5 +53,32 @@ Exercise 17: executable
 1)chmod +x script .sh
 The `script.sh` file was not executable so i used `chmod +x script.sh` to add execute permission , then i staged and committed the permission change so the script can be run directly using `./script.sh` without using `bash script.sh` every time.
 
-Exercise 18:
+Exercise 18:commit-parts
+1)git add -p file.txt
+In this task I had different changes for task 1 and task 2 inside the same file , so I used git add -p file.txt to stage only selected parts of the file , first I pressed s to split the big change into smaller hunks then used y for task 1 changes and n for the remaining ones , after committing task 1 I added the leftover changes normally and made the second commit then verified the exercise.
+
+Exercise 19: pick-your-favourates
+1)git cherry-pick
+2)git merge --squash
+I used `git cherry-pick feature-a` and `git cherry-pick feature-b` to bring both features as separate commits into the current branch , then i used `git merge --squash feature-c` to combine both commits of feature c into one , there was a conflict in `program.txt` so i manually kept all the required changes from features A B and C removed the conflict markers then staged the file and committed feature c as a single commit.
+
+Exercise 20:rebase-complex
+
+1)git rebase --onto
+I used `git rebase --onto your-master 8e22462` to move only the two bug fix commits from `rebase-complex` onto `your-master` , here `your-master` was the new base and `8e22462` was the old base so git selected only the commits after it from my current branch , this way the issue-555 commits were not included and only the bug fixes were added.
+
+Exercise 21:invalid-order
+
+I used `git rebase -i HEAD~2` to open commits in interactive mode , after that i swapped the order of the two commit lines saved the file and git recreated the history in the new order.
+
+Exercise 22:find-swearwords
+1)git log -S
+I used `git log -S"shit" --oneline -- words.txt list.txt` to find all the old commits where the word was added , then i started an interactive rebase from the parent of the oldest commit and marked those commits as `edit` , whenever git stopped i replaced `shit` with `flower` in the required file used `git commit --amend --no-edit` to update that old commit and continued the rebase .
+
+Exercise 23: find-bug
+1)git bisect
+2)openssl enc -base64 -A -d 
+In this task i used `git bisect` to find the first commit where the bug was introduced , i marked `1.0` as good and current `HEAD` as bad then used a command which decoded the base64 text and checked for the word `jackass` , git automatically tested different commits using binary search and found commit `#78` as the first bad commit , after that i pushed that commit to the `find-bug` branch for verification and the exercise passed.
+
+
 
