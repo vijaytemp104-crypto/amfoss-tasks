@@ -31,6 +31,40 @@ I used git merge escaped while I was on chase-branch.Since there were
 no conflicting commits,Git performed a fast-forward merge and moved
 chase-branch to the same commit as escaped.
 
+Exercise 6: merge-conflict
+1)git merge another-piece-of-work
+I used git merge to bring the changes from another-piece-of-work into my current branch , this caused a conflict so i opened the conflicted file manually combined both changes removed the conflict markers then staged and committed the resolved file.
+
+Exercise 7: save-your-work
+1)git stash push
+2)git stash pop
+I used git stash to temporarily save my unfinished changes so i could fix and commit the urgent bug first , after that i used git stash pop to restore my previous work then added the final line and committed the completed work.
+
+Exercise 8: change-branch-history
+1)git rebase hot-bugfix
+I used git rebase hot-bugfix to replay my current branch changes on top of the bug fix branch , this changed the history into a straight line where the bug fix came first and my work came after it.
+
+Exercise 9: remove-ignored
+1)git rm --cached ignored.txt
+The file was already tracked before it was added to .gitignore so git was still tracking it , i used git rm --cached ignored.txt to remove it only from git tracking while keeping the actual file on my system then committed the change.
+
+Exercise 10: case-sensitive-filename
+1)mv File.txt file.txt
+2)git add -A
+I used mv to rename File.txt to file.txt then used git add -A so git could detect and stage the rename , after that i committed the lowercase filename.
+
+Exercise 11: fix-typo
+1)vim file.txt
+2)git add file.txt
+3)git commit --amend -m "Add Hello world"
+I corrected the typo from wordl to world inside file.txt then staged the file and used git commit --amend to update the latest commit along with its commit message , finally i verified the exercise.
+
+Exercise 12: forge-date
+1)git commit --amend --date="1987-01-01" --no-edit
+I used git commit --amend with the date option to change the date of the latest commit to 1987-01-01 , and --no-edit kept the existing commit message unchanged then i verified the exercise.
+
+Exercise 13: fix-old-typegit rebase -i HEAD~2git commit --amendgit rebase --continuei used interactive rebase to go back and edit the older commit because the typo was not in the latest commit , then i changed wordl to world in file.txt and also fixed the commit message using git commit --amend after that i continued the rebase and got a conflict so i kept the corrected line along with the newer changes removed the conflict markers and continued the rebase again , finally i checked the history and verified the exercise.
+
 Exercise 13: fix-old-type
 git rebase -i HEAD~2
 git commit --amend
