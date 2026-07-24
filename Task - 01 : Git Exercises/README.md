@@ -302,3 +302,9 @@ openssl enc -base64 -A -d
 ```
 
 In this task i used `git bisect` to find the first commit where the bug was introduced , i marked `1.0` as good and current `HEAD` as bad then used a command which decoded the base64 text and checked for the word `jackass` , git automatically tested different commits using binary search and found commit `#78` as the first bad commit , after that i pushed that commit to the `find-bug` branch for verification and the exercise passed.
+
+---
+
+## Final Completion
+
+![Final completion screenshot](images/completion.png)
