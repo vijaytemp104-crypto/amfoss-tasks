@@ -307,4 +307,4 @@ In this task i used `git bisect` to find the first commit where the bug was intr
 
 ## Final Completion
 
-![Final completion screenshot](images/FinalTask_completion_screenshot.png)
+![Final completion screenshot](images/FinalTask_completion_screenshot)
