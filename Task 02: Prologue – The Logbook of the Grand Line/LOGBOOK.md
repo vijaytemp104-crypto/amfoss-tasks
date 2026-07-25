@@ -9,7 +9,7 @@ Devil fruit location :sector_C/devil_fruit_6.txt
 
 Awakening Signture/Key : ONE_PIECE{GITO_GITO_NO_AWAKENING}
 
-![](images/Task02level01)
+![](images/Task02level01.png)
 
 LEVEL 2 — THE TWO FACES OF WHISKEY PEAK
 Objective : Finding Key/Boroque Dial
@@ -18,7 +18,7 @@ Inside the Whiskey_Peak folder I ran git branch -a to find if there's any other 
 
 Awakening Signture/Key : BAROQUE_DIAL{SPLIT_TIMELINE_MISDIRECTION}
 
-![](images/Task02level02)
+![](images/Task02level02.png)
 
 LEVEL 3 — THE WAX LABYRINTH OF LITTLE GARDEN
 
@@ -28,7 +28,7 @@ Started with switching the branch to little_garden by git switch little_garden, 
 
 PONEGLYPH_FRAGMENT_I = "KjY2MjF4bW0lKzYqNyBsIS0vbTAtJTcnL"
 
-![](images/Task02level03)
+![](images/Task02level03.png)
 
 LEVEL 4 — THE CAMOUFLAGED BLUEPRINTS OF WATER 7
 Objective: Find the second cypher fragment.
@@ -37,7 +37,7 @@ In the branch canonical-timeline there's a a Directory GrandLine--> Water_7-- > 
 
 PONEGLYPH_FRAGMENT_II="SwnbzptDiM3JSpvFiMuJ28PJzAlJ28VIzA="
 
-![](images/Task02level04)
+![](images/Task02level04.png)
 
 
 LEVEL 5 — THE BUSTER CALL TIMELINE RECOVERY
@@ -47,7 +47,7 @@ Hop into alternate_timeline branch and checked the git log. Level 5 : Vault seal
 
 Prize : https://github.com/rogueone-x/Laugh-Tale-Merge-War
 
-![](images/Task02level05)
+![](images/Task02level05.png)
 
 Level - 6 — THE GREAT MERGE WAR AT LAUGH TALE
 
@@ -56,7 +56,7 @@ Apparently, there are two branches here i.e ancient_history and pirate_king_path
 
 FLAG: FLAG{The_Grand_Line_Remembers_Your_Commit}
 
-![](images/Task02level06)
+![](images/Task02level06.png)
 
 🏴 REWARD UNLOCKED
 
