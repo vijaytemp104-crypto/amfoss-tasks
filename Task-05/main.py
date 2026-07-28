@@ -1,4 +1,4 @@
-import os
+import curses
 import time
 
 import psutil
@@ -44,38 +44,66 @@ def get_processes():
     return process_data
 
 
-# Displays the collected process information as a table.
-def display_processes(processes):
-    print("Grand Line Guardian")
-    print(f"Total Active Processes: {len(psutil.pids())}")
-    print()
+def display_processes(screen, processes):
+    screen.erase()
 
-    print(
-        f"{'PID':<10} "
-        f"{'PROCESS NAME':<30} "
-        f"{'CPU %':<10} "
-        f"{'MEMORY (MB)':<12}"
+    height, width = screen.getmaxyx()
+
+    if height < 7 or width < 50:
+        message = "Terminal window is too small"
+        screen.addstr(0, 0, message[:width - 1])
+        screen.refresh()
+        return
+
+    screen.addstr(0, 0, "Grand Line Guardian", curses.A_BOLD)
+    screen.addstr(1, 0, f"Total Active Processes: {len(processes)}")
+
+    header = (
+        f"{'PID':<10}"
+        f"{'PROCESS NAME':<30}"
+        f"{'CPU %':>10}"
+        f"{'MEMORY (MB)':>15}"
     )
 
-    print("-" * 68)
+    screen.addstr(3, 0, header[:width - 1], curses.A_REVERSE)
 
-    for process in processes:
-        print(
-            f"{process['pid']:<10} "
-            f"{process['name'][:29]:<30} "
-            f"{process['cpu']:<10.1f} "
-            f"{process['memory']:<12.1f}"
+    maximum_rows = height - 5
+
+    for index, process in enumerate(processes[:maximum_rows]):
+        row = index + 4
+
+        line = (
+            f"{process['pid']:<10}"
+            f"{process['name'][:29]:<30}"
+            f"{process['cpu']:>9.1f}%"
+            f"{process['memory']:>15.1f}"
         )
 
+        screen.addstr(row, 0, line[:width - 1])
 
-try:
+    screen.addstr(height - 1, 0, "q: Quit", curses.A_BOLD)
+    screen.refresh()
+
+
+def main(screen):
+    try:
+        curses.curs_set(0)
+    except curses.error:
+        pass
+
+    
+    screen.nodelay(True)
+
     while True:
-        processes = get_processes()
+        key = screen.getch()
 
-        os.system("clear")
-        display_processes(processes)
+        if key == ord("q"):
+            break
+
+        processes = get_processes()
+        display_processes(screen, processes)
 
         time.sleep(0.3)
 
-except KeyboardInterrupt:
-    print("\nGrand Line Guardian stopped.")
+
+curses.wrapper(main)
