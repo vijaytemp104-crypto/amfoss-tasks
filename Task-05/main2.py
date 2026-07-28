@@ -68,6 +68,10 @@ def get_process_cpu_time(pid):
         return None
 
 
+def get_cpu(process):
+    return process["cpu"]
+
+
 def main(screen):
     try:
         curses.curs_set(0)
@@ -121,6 +125,28 @@ def main(screen):
         previous_total_time = current_total_time
 
 
+       
+        processes = []
+        for pid in pids:
+            name = get_process_name(pid)
+            memory = get_memory(pid)
+
+            if name is None or memory is None:
+                continue
+            cpu = cpu_percentages.get(pid,0.0)
+            
+            process ={
+                    "pid" : pid,
+                    "name" : name,
+                    "cpu" : cpu,
+                    "memory" : memory
+                    }
+            processes.append(process)
+     
+            processes.sort(key =get_cpu, reverse = True)
+
+
+
         screen.erase()
 
         height, width = screen.getmaxyx()
@@ -137,20 +163,17 @@ def main(screen):
         screen.addstr(3,0, heading)
 
         row = 4
-        for pid in pids:
+        for process in processes:
             
             if row >= height -1:
                 break
 
-            name = get_process_name(pid)
-            memory = get_memory(pid)
-            
-            if name is None or memory is None :
-                continue
+            pid = process["pid"]
+            name = process["name"]
+            cpu = process["cpu"]
+            memory = process["memory"]
 
-            cpu = cpu_percentages.get(pid, 0.0)
 
-            
             line = (f"{pid:<10}"
             f"{name:30}"
             f"{cpu:>9.1f}%"
