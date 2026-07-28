@@ -37,6 +37,37 @@ def get_memory(pid):
         return None
 
 
+def get_total_cpu_time():
+    with open("/proc/stat") as file:
+        first_line = file.readline()
+
+    values = first_line.split()[1:9]
+    
+    total_cpu_time = 0
+
+    for value in values:
+        total_cpu_time += int(value)
+
+    return total_cpu_time
+
+
+def get_process_cpu_time(pid):
+    try:
+        with open(f"/proc/{pid}/stat") as file:
+            data = file.read()
+
+        closing_bracket = data.rfind(")")
+        values = data[closing_bracket +2:].split()
+
+        user_time = int(values[11])
+        system_time = int(values[12])
+
+        return user_time + system_time
+
+    except(FileNotFoundError, PermissionError):
+        return None
+
+
 def main(screen):
     try:
         curses.curs_set(0)
@@ -45,8 +76,51 @@ def main(screen):
 
     screen.timeout(500)
 
+
+
+    previous_total_time = get_total_cpu_time()
+    previous_process_times = {}
+    
+    for pid in get_pids():
+        process_time = get_process_cpu_time(pid)
+
+        if process_time is not None:
+            previous_process_times[pid] = process_time
+    
+
+
     while True:
+
+       
         pids = get_pids()
+
+        current_total_time = get_total_cpu_time()
+        total_change = current_total_time - previous_total_time
+        cpu_percentages = {}
+        cpu_count = os.cpu_count()
+
+
+        
+        for pid in pids:
+            current_process_time = get_process_cpu_time(pid)
+
+            if current_process_time is None:
+                continue
+            
+            if pid in previous_process_times and total_change > 0:
+                process_change = (current_process_time - previous_process_times[pid])
+
+                cpu_percentages[pid] = (process_change/total_change *cpu_count *100)
+
+            else:
+                cpu_percentages[pid] = 0
+
+            previous_process_times[pid] = current_process_time
+
+
+        previous_total_time = current_total_time
+
+
         screen.erase()
 
         height, width = screen.getmaxyx()
@@ -57,6 +131,7 @@ def main(screen):
         
         heading =( f"{'PID':<10}"
                    f"{'PROCESS NAME':<30}"
+                  f"{'CPU %' : >10}"
                   f"{'MEMORY(MB)':>15}"
                   )
         screen.addstr(3,0, heading)
@@ -72,9 +147,13 @@ def main(screen):
             
             if name is None or memory is None :
                 continue
+
+            cpu = cpu_percentages.get(pid, 0.0)
+
             
             line = (f"{pid:<10}"
             f"{name:30}"
+            f"{cpu:>9.1f}%"
             f"{memory:>15.1f}"
             )
             screen.addstr(
