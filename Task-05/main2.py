@@ -78,6 +78,25 @@ def main(screen):
     except curses.error:
         pass
 
+    title_style = curses.A_BOLD
+    heading_style = curses.A_BOLD
+    footer_style = curses.A_REVERSE
+
+    if curses.has_colors():
+        curses.start_color()
+
+        curses.init_pair(1,curses.COLOR_BLACK,curses.COLOR_CYAN )
+
+        curses.init_pair(2,curses.COLOR_BLACK,curses.COLOR_GREEN)
+
+        curses.init_pair(3,curses.COLOR_YELLOW,curses.COLOR_BLACK)
+
+        title_style |= curses.color_pair(1)
+        heading_style |= curses.color_pair(2)
+        footer_style |= curses.color_pair(3)
+
+
+
     screen.timeout(500)
 
 
@@ -143,7 +162,7 @@ def main(screen):
                     }
             processes.append(process)
      
-            processes.sort(key =get_cpu, reverse = True)
+        processes.sort(key =get_cpu, reverse = True)
 
 
 
@@ -151,7 +170,13 @@ def main(screen):
 
         height, width = screen.getmaxyx()
         
-        screen.addstr(0,0,"Grand Line Guardian")
+        
+        title = " GRAND LINE GUARDIAN "
+        title_position = max(0, (width - len(title)) // 2)
+
+        screen.addstr(0, 0," " * (width - 1),title_style)
+
+        screen.addstr(0,title_position,title,title_style)
         
         screen.addstr(1,0, "Total Process: " + str(len(pids)))
         
@@ -160,7 +185,11 @@ def main(screen):
                   f"{'CPU %' : >10}"
                   f"{'MEMORY(MB)':>15}"
                   )
-        screen.addstr(3,0, heading)
+        
+        screen.addstr(3,0," " * (width - 1),heading_style)
+
+        screen.addstr(3,0,heading[:width - 1],heading_style)
+
 
         row = 4
         for process in processes:
@@ -179,18 +208,20 @@ def main(screen):
             f"{cpu:>9.1f}%"
             f"{memory:>15.1f}"
             )
-            screen.addstr(
-                    row,0,line[:width -1]
-            )
-            row +=1
+            screen.addstr(row,0,line[:width -1])
+        
 
+            row += 1 
+            
         controls = "q: Quit"
 
-        screen.addstr(
-            height - 1,
-            0,
-            controls[:width -1]
-            )
+        screen.addstr(height - 1,0," " * (width - 1),footer_style)
+    
+        screen.addstr(height - 1,0,controls[:width - 1],footer_style)
+            
+
+        
+        screen.addstr(height - 1,0,controls[:width -1])
         screen.refresh()
 
         key = screen.getch()
