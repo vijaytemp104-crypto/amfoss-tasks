@@ -1,89 +1,91 @@
 import curses
-import time
+import os
 
-import psutil
+def get_pids ():
+    pids = []
+    for item in os.listdir("/proc"):
+        if item.isdigit():
+            pids.append(int(item))
+
+    pids.sort()
+
+    return pids
+
+def get_process_name(pid):
+    try:
+        with open("/proc/" + str(pid) + "/comm") as file:
+            name = file.read().strip()
+        return name
+    except(FileNotFoundError, PermissionError):
+        return None
+
+        
+
+def get_memory(pid):
+    try:
+        with open("/proc/" + str(pid)+ "/status") as file:
+            for line in file:
+                if line.startswith("VmRSS:"):
+                    parts = line.split()
+                    memory_kb = int(parts[1])
+
+                    return memory_kb / 1024
+        return 0
+
+
+    except(FileNotFoundError, PermissionError):
+        return None
+
+
+def get_total_cpu_time():
+    with open("/proc/stat") as file:
+        first_line = file.readline()
+
+    values = first_line.split()[1:9]
+    
+    total_cpu_time = 0
+
+    for value in values:
+        total_cpu_time += int(value)
+
+    return total_cpu_time
+
+
+def get_process_cpu_time(pid):
+    try:
+        with open(f"/proc/{pid}/stat") as file:
+            data = file.read()
+
+        closing_bracket = data.rfind(")")
+        values = data[closing_bracket +2:].split()
+
+        user_time = int(values[11])
+        system_time = int(values[12])
+
+        return user_time + system_time
+
+    except(FileNotFoundError, PermissionError):
+        return None
 
 
 def get_cpu(process):
     return process["cpu"]
 
-
-def get_processes():
-    processes = list(psutil.process_iter())
-
-    for process in processes:
-        try:
-            process.cpu_percent()
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            pass
-
-    time.sleep(0.2)
-
-    process_data = []
-
-    for process in processes:
-        try:
-            pid = process.pid
-            name = process.name()
-            cpu_usage = process.cpu_percent()
-            memory_usage = process.memory_info().rss / (1024 * 1024)
-
-            process_data.append({
-                "pid": pid,
-                "name": name,
-                "cpu": cpu_usage,
-                "memory": memory_usage
-            })
-
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
-
-    
-    process_data.sort(key=get_cpu, reverse=True)
-
-    return process_data
-
-
-def display_processes(screen, processes):
-    screen.erase()
-
-    height, width = screen.getmaxyx()
-
-    if height < 7 or width < 50:
-        message = "Terminal window is too small"
-        screen.addstr(0, 0, message[:width - 1])
-        screen.refresh()
-        return
-
-    screen.addstr(0, 0, "Grand Line Guardian", curses.A_BOLD)
-    screen.addstr(1, 0, f"Total Active Processes: {len(processes)}")
-
-    header = (
-        f"{'PID':<10}"
-        f"{'PROCESS NAME':<30}"
-        f"{'CPU %':>10}"
-        f"{'MEMORY (MB)':>15}"
-    )
-
-    screen.addstr(3, 0, header[:width - 1], curses.A_REVERSE)
-
-    maximum_rows = height - 5
-
-    for index, process in enumerate(processes[:maximum_rows]):
-        row = index + 4
-
-        line = (
-            f"{process['pid']:<10}"
-            f"{process['name'][:29]:<30}"
-            f"{process['cpu']:>9.1f}%"
-            f"{process['memory']:>15.1f}"
-        )
-
-        screen.addstr(row, 0, line[:width - 1])
-
-    screen.addstr(height - 1, 0, "q: Quit", curses.A_BOLD)
-    screen.refresh()
-
+def get_uptime():
+    try:
+        with open("/proc/uptime") as file:
+            uptime_seconds = int(float(file.read().split()[0]))
+            days = uptime_seconds // 86400
+            uptime_seconds %= 86400
+            hours = uptime_seconds //3600
+            uptime_seconds %= 3600
+            minutes =  uptime_seconds //60
+            seconds = uptime_seconds%60
+        if days>0:
+            return (f"{days}d {hours}h {minutes}m {seconds}s")
+        return (f"{hours}h {minutes}m {seconds}s")
+    except(FileNotFoundError,PermissionError,ValueError,IndexError):
+                return "Unknown"
 
 def main(screen):
     try:
@@ -91,19 +93,158 @@ def main(screen):
     except curses.error:
         pass
 
+    title_style = curses.A_BOLD
+    heading_style = curses.A_BOLD
+    footer_style = curses.A_REVERSE
+
+    if curses.has_colors():
+        curses.start_color()
+
+        curses.init_pair(1,curses.COLOR_BLACK,curses.COLOR_CYAN )
+
+        curses.init_pair(2,curses.COLOR_BLACK,curses.COLOR_GREEN)
+
+        curses.init_pair(3,curses.COLOR_YELLOW,curses.COLOR_BLACK)
+
+        title_style |= curses.color_pair(1)
+        heading_style |= curses.color_pair(2)
+        footer_style |= curses.color_pair(3)
+
+
+
+    screen.timeout(500)
     
-    screen.nodelay(True)
+    hostname = os.uname().nodename
+
+
+    previous_total_time = get_total_cpu_time()
+    previous_process_times = {}
+    
+    for pid in get_pids():
+        process_time = get_process_cpu_time(pid)
+
+        if process_time is not None:
+            previous_process_times[pid] = process_time
+    
+
 
     while True:
-        key = screen.getch()
 
+       
+        pids = get_pids()
+
+        uptime = get_uptime()
+
+        current_total_time = get_total_cpu_time()
+        total_change = current_total_time - previous_total_time
+        cpu_percentages = {}
+        cpu_count = os.cpu_count()
+
+
+        
+        for pid in pids:
+            current_process_time = get_process_cpu_time(pid)
+
+            if current_process_time is None:
+                continue
+            
+            if pid in previous_process_times and total_change > 0:
+                process_change = (current_process_time - previous_process_times[pid])
+
+                cpu_percentages[pid] = (process_change/total_change *cpu_count *100)
+
+            else:
+                cpu_percentages[pid] = 0
+
+            previous_process_times[pid] = current_process_time
+
+
+        previous_total_time = current_total_time
+
+
+       
+        processes = []
+        for pid in pids:
+            name = get_process_name(pid)
+            memory = get_memory(pid)
+
+            if name is None or memory is None:
+                continue
+            cpu = cpu_percentages.get(pid,0.0)
+            
+            process ={
+                    "pid" : pid,
+                    "name" : name,
+                    "cpu" : cpu,
+                    "memory" : memory
+                    }
+            processes.append(process)
+     
+        processes.sort(key =get_cpu, reverse = True)
+
+
+
+        screen.erase()
+
+        height, width = screen.getmaxyx()
+        
+        
+        title = " GRAND LINE GUARDIAN "
+        title_position = max(0, (width - len(title)) // 2)
+
+        screen.addstr(0, 0," " * (width - 1),title_style)
+
+        screen.addstr(0,title_position,title,title_style)
+        
+        system_info = (f"Host: {hostname}"f"uptime: {uptime}"f"Processes:{len(processes)}")
+        screen.addstr(1,0, system_info[:width -1])
+        
+        heading =( f"{'PID':<10}"
+                   f"{'PROCESS NAME':<30}"
+                  f"{'CPU %' : >10}"
+                  f"{'MEMORY(MB)':>15}"
+                  )
+        
+        screen.addstr(3,0," " * (width - 1),heading_style)
+
+        screen.addstr(3,0,heading[:width - 1],heading_style)
+
+
+        row = 4
+        for process in processes:
+            
+            if row >= height -1:
+                break
+
+            pid = process["pid"]
+            name = process["name"]
+            cpu = process["cpu"]
+            memory = process["memory"]
+
+
+            line = (f"{pid:<10}"
+            f"{name:30}"
+            f"{cpu:>9.1f}%"
+            f"{memory:>15.1f}"
+            )
+            screen.addstr(row,0,line[:width -1])
+        
+
+            row += 1 
+            
+        controls = "q: Quit"
+
+        screen.addstr(height - 1,0," " * (width - 1),footer_style)
+    
+        screen.addstr(height - 1,0,controls[:width - 1],footer_style)
+            
+
+        
+        screen.addstr(height - 1,0,controls[:width -1])
+        screen.refresh()
+
+        key = screen.getch()
         if key == ord("q"):
             break
-
-        processes = get_processes()
-        display_processes(screen, processes)
-
-        time.sleep(0.3)
-
-
-curses.wrapper(main)
+if __name__ == "__main__":
+    curses.wrapper(main)
